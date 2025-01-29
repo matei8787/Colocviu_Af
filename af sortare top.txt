@@ -1,0 +1,49 @@
+
+//#include <iostream>
+//#include <fstream>
+//#include <vector>
+//#include <queue>
+//
+//std::ifstream f("sortaret.in");
+//std::ofstream g("sortaret.out");
+//
+//const int NMAX = 1e5;
+//std::vector<int> L[NMAX + 1];
+//std::vector<int> top_order;
+//int viz[NMAX + 1];
+//int N, M;
+//
+//void dfs(int node){
+//    viz[node] = 1;
+//    for (auto next: L[node]){
+//        if (!viz[next])
+//            dfs(next);
+//    }
+//
+//    std::cout << node << " ";
+//    top_order.push_back(node);
+//}
+//
+//int main() {
+//
+//    f >> N >> M;
+//    for(int i = 1; i <= M; ++i){
+//        int x, y;
+//        f >> x >> y;
+//        L[x].push_back(y);
+//
+//    }
+//    //kahn();
+//    for (int i = 1; i <= N; ++i){
+//        if (!viz[i])
+//            dfs(i);
+//    }
+//
+//    for (auto it = top_order.rbegin(); it != top_order.rend(); it++)
+//        g << *it << " ";
+//
+//
+//
+//
+//    return 0;
+//}

@@ -1,0 +1,66 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+
+std::ifstream f("graf.in");
+std::ofstream g("graf.out");
+
+const int NMAX = 1e5;
+std::vector<std::pair<int, int>> adj[NMAX + 1]; // Lista de adiacență (vecin, cost)
+bool visited[NMAX + 1]; // Marcăm nodurile vizitate
+
+int prim(int start, int N) {
+    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<>> pq;
+    int totalCost = 0; // Cost total al APM
+    int edgesUsed = 0; // Numărul de muchii incluse
+
+    // Adăugăm nodul de start
+    pq.push({0, start});
+
+    while (!pq.empty() && edgesUsed < N - 1) {
+        auto [cost, node] = pq.top();
+        pq.pop();
+
+        // Dacă nodul a fost deja vizitat, continuăm
+        if (visited[node]) continue;
+        visited[node] = true;
+
+        // Adăugăm costul muchiei la costul total
+        totalCost += cost;
+        edgesUsed++;
+
+        // Adăugăm toate muchiile nodului curent în coadă
+        for (auto [neighbor, weight] : adj[node]) {
+            if (!visited[neighbor]) {
+                pq.push({weight, neighbor});
+            }
+        }
+    }
+
+    // Verificăm dacă am reușit să includem toate nodurile
+    return (edgesUsed == N - 1) ? totalCost : -1; // -1 indică faptul că graful nu este conex
+}
+
+int main() {
+    int N, M;
+    f >> N >> M;
+
+    for (int i = 0; i < M; ++i) {
+        int u, v, cost;
+        f >> u >> v >> cost;
+        adj[u].push_back({v, cost});
+        adj[v].push_back({u, cost}); // Graf neorientat
+    }
+
+    int startNode = 1; // Începem de la nodul 1
+    int result = prim(startNode, N);
+
+    if (result == -1) {
+        g << "Graful nu este conex\n";
+    } else {
+        g << "Costul APM: " << result << "\n";
+    }
+
+    return 0;
+}

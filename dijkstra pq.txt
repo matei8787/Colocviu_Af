@@ -1,0 +1,62 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <queue>
+#include <climits>
+
+std::ifstream f("dijkstra.in");
+std::ofstream g("dijkstra.out");
+
+const int NMAX = 1e5;
+std::vector<std::pair<int, int>> L[NMAX + 1]; // Lista de adiacență cu (vecin, cost)
+int N, M, start, finish;
+int dist[NMAX + 1], tata[NMAX + 1];
+
+void dijkstra() {
+    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq;
+
+    dist[start] = 0;
+    pq.emplace(0, start);
+
+    while (!pq.empty()) {
+        int d = pq.top().first;
+        int at = pq.top().second;
+        pq.pop();
+
+        if (d > dist[at]) continue;
+
+        for (auto [to, cost] : L[at]) {
+            if (dist[at] + cost < dist[to]) {
+                dist[to] = dist[at] + cost;
+                tata[to] = at;
+                pq.emplace(dist[to], to);
+            }
+        }
+    }
+
+}
+
+int main() {
+    f >> N >> M;
+
+    for (int i = 1; i <= M; ++i) {
+        int x, y, cost;
+        f >> x >> y >> cost;
+        L[x].emplace_back(y, cost);
+//        L[y].push_back({x, cost});
+    }
+
+
+    std::fill(dist, dist + N + 1, INT_MAX);
+    start = 1;
+
+    dijkstra();
+
+
+    for (int i = 2; i <= N; ++i){
+        int d = (dist[i] == INT_MAX) ? 0 : dist[i];
+        g << d << " ";
+    }
+
+    return 0;
+}

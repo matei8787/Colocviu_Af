@@ -1,0 +1,83 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+#include <climits>
+
+using namespace std;
+
+// Structură pentru muchii ponderate
+struct Edge {
+    int to, weight;
+};
+
+// Funcție pentru sortare topologică
+void topologicalSort(int node, vector<vector<Edge>>& graph, vector<bool>& visited, vector<int>& topoOrder) {
+    visited[node] = true;
+    for (auto& edge : graph[node]) {
+        if (!visited[edge.to]) {
+            topologicalSort(edge.to, graph, visited, topoOrder);
+        }
+    }
+    topoOrder.push_back(node);
+}
+
+// Funcție pentru găsirea drumului critic
+void findCriticalPath(int n, vector<vector<Edge>>& graph) {
+    // Pas 1: Sortare topologică
+    vector<bool> visited(n, false);
+    vector<int> topoOrder;
+
+    for (int i = 0; i < n; ++i) {
+        if (!visited[i]) {
+            topologicalSort(i, graph, visited, topoOrder);
+        }
+    }
+    reverse(topoOrder.begin(), topoOrder.end()); // Inversăm ordinea topologică
+
+    // Pas 2: Calculul timpului de început (earliest start time)
+    vector<int> earliestStart(n, 0);
+    for (int node : topoOrder) {
+        for (auto& edge : graph[node]) {
+            earliestStart[edge.to] = max(earliestStart[edge.to], earliestStart[node] + edge.weight);
+        }
+    }
+
+    // Pas 3: Calculul timpului de sfarsit (latest start time)
+    vector<int> latestStart(n, INT_MAX);
+    latestStart[topoOrder.back()] = earliestStart[topoOrder.back()]; // Ultimul nod din ordinea topologica
+
+    for (auto it = topoOrder.rbegin(); it != topoOrder.rend(); ++it) {
+        int node = *it;
+        for (auto& edge : graph[node]) {
+            latestStart[node] = min(latestStart[node], latestStart[edge.to] - edge.weight);
+        }
+    }
+
+    // Pas 4: Identificarea drumului critic
+    cout << "Drumul critic: ";
+    for (int node : topoOrder) {
+        if (earliestStart[node] == latestStart[node]) {
+            cout << node << " ";
+        }
+    }
+    cout << endl;
+
+    cout << "Durata proiectului: " << earliestStart[topoOrder.back()] << endl;
+}
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<Edge>> graph(n);
+    for (int i = 0; i < m; ++i) {
+        int u, v, weight;
+        cin >> u >> v >> weight;
+        graph[u].push_back({v, weight});
+    }
+
+    findCriticalPath(n, graph);
+
+    return 0;
+}

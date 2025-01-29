@@ -1,0 +1,80 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <queue>
+#include <stack>
+
+std::ifstream f("ctc.in");
+std::ofstream g("ctc.out");
+
+const int NMAX = 1e5;
+std::vector<int> L[NMAX + 1];
+std::vector<int> ids, lowlink;
+std::vector<bool> onStack;
+std::stack<int> st;
+int id;
+std::vector<std::vector<int>> scc;
+
+void strongConnect(int at) {
+    st.push(at);
+    onStack[at] = true;
+    ids[at] = lowlink[at] = id++;
+
+    for (auto to: L[at]) {
+        if (ids[to] == -1) {
+            strongConnect(to);
+            lowlink[at] = std::min(lowlink[at], lowlink[to]);
+        }
+        else if (onStack[to]) {
+            lowlink[at] = std::min(lowlink[at], lowlink[to]);
+        }
+    }
+
+    if (ids[at] == lowlink[at]) {
+        std::vector<int> component;
+        while (true) {
+            auto node = st.top();
+            st.pop();
+            onStack[node] = false;
+            component.push_back(node);
+            if (node == at) break;
+        }
+        scc.push_back(component);
+    }
+}
+int viz[NMAX + 1];
+int N, M;
+
+
+int main() {
+
+    f >> N >> M;
+    for(int i = 1; i <= M; ++i){
+        int x, y;
+        f >> x >> y;
+        L[x].push_back(y);
+
+    }
+
+    ids.assign(N+1, -1);
+    onStack.assign(N+1, false);
+    lowlink.assign(N+1, 0);
+
+    for (int i = 1; i <= N; i++) {
+        if (ids[i] == -1) {
+            strongConnect(i);
+        }
+    }
+
+    g << scc.size() << "\n";
+
+    for (const auto& component: scc){
+        for (auto node: component)
+            g << node << " ";
+        g << '\n';
+    }
+
+
+
+    return 0;
+}

@@ -1,0 +1,109 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <limits>
+#include <algorithm>
+
+using namespace std;
+
+const int INF = numeric_limits<int>::max();
+
+int main() {
+    ifstream fin("grafpond.in");
+    ofstream fout("grafpond.out");
+
+    int n, m;
+    fin >> n >> m;
+
+    // Initializare matrice de distante si predecesori
+    vector<vector<int>> dist(n + 1, vector<int>(n + 1, INF));
+    vector<vector<int>> pred(n + 1, vector<int>(n + 1, -1));
+
+    for (int i = 1; i <= n; ++i) {
+        dist[i][i] = 0; // Distanta de la un nod la el insusi este 0
+    }
+
+    // Citire muchii
+    for (int i = 0; i < m; ++i) {
+        int u, v, w;
+        fin >> u >> v >> w;
+        dist[u][v] = w;
+        dist[v][u] = w; // Graful este neorientat
+        pred[u][v] = u;
+        pred[v][u] = v;
+    }
+
+    // Algoritmul Floyd-Warshall
+    for (int k = 1; k <= n; ++k) {
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (dist[i][k] != INF && dist[k][j] != INF && dist[i][j] > dist[i][k] + dist[k][j]) {
+                    dist[i][j] = dist[i][k] + dist[k][j];
+                    pred[i][j] = pred[k][j]; // Actualizam predecesorul
+                }
+            }
+        }
+    }
+
+    // Calculam excentricitatile
+    vector<int> eccentricity(n + 1, 0);
+    for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j <= n; ++j) {
+            if (dist[i][j] != INF) {
+                eccentricity[i] = max(eccentricity[i], dist[i][j]);
+            }
+        }
+    }
+
+    // Calculam raza si diametrul
+    int radius = INF, diameter = 0;
+    for (int i = 1; i <= n; ++i) {
+        radius = min(radius, eccentricity[i]);
+        diameter = max(diameter, eccentricity[i]);
+    }
+
+    // Determinam centrul grafului
+    vector<int> center;
+    for (int i = 1; i <= n; ++i) {
+        if (eccentricity[i] == radius) {
+            center.push_back(i);
+        }
+    }
+
+    // Gasim un lant diametral
+    int u_diam = -1, v_diam = -1;
+    for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j <= n; ++j) {
+            if (dist[i][j] == diameter) {
+                u_diam = i;
+                v_diam = j;
+                break;
+            }
+        }
+    }
+
+    // Reconstruim lantul diametral
+    vector<int> diametralPath;
+    int current = v_diam;
+    while (current != u_diam) {
+        diametralPath.push_back(current);
+        current = pred[u_diam][current];
+    }
+    diametralPath.push_back(u_diam);
+    reverse(diametralPath.begin(), diametralPath.end());
+    
+    fout << "Raza: " << radius << "\n";
+    fout << "Centrul: ";
+    for (int c : center) {
+        fout << c << " ";
+    }
+    fout << "\n";
+    fout << "Diametrul: " << diameter << "\n";
+    fout << "Lant diametral: ";
+    for (int node : diametralPath) {
+        fout << node << " ";
+    }
+    fout << "\n";
+
+    return 0;
+}

@@ -1,0 +1,73 @@
+#include <fstream>
+#include <vector>
+#include <queue>
+#include <climits>
+
+std::ifstream f("maxflow.in");
+std::ofstream g("maxflow.out");
+
+const int NMAX = 1000; // Nr maxim de noduri
+int residual[NMAX + 1][NMAX + 1]; // Matricea capacitatilor reziduale
+int parent[NMAX + 1]; // Vector pentru a reconstrui drumul augmentativ
+std::vector<int> adj[NMAX + 1]; // Lista de adiacenta
+
+int bfs(int source, int sink, int n) {
+    std::fill(parent, parent + n + 1, -1);
+    std::queue<std::pair<int, int>> q; // (nod curent, flux curent)
+    q.emplace(source, INT_MAX);
+
+    while (!q.empty()) {
+        int current = q.front().first;
+        int flow = q.front().second;
+        q.pop();
+
+        for (int next : adj[current]) {
+            if (parent[next] == -1 && residual[current][next] > 0) {
+                parent[next] = current;
+                int new_flow = std::min(flow, residual[current][next]);
+                if (next == sink) return new_flow;
+                q.emplace(next, new_flow);
+            }
+        }
+    }
+
+    return 0;
+}
+
+int edmondsKarp(int source, int sink, int n) {
+    int max_flow = 0;
+
+    while (true) {
+        int flow = bfs(source, sink, n);
+        if (flow == 0) break; // Nu mai exista drum s-t nesaturat
+
+        max_flow += flow;
+
+        // Actualizam capacitatile reziduale
+        int current = sink;
+        while (current != source) {
+            int prev = parent[current];
+            residual[prev][current] -= flow; // Scadem fluxul de pe muchia directa
+            residual[current][prev] += flow; // Adaugam fluxul pe muchia inversa
+            current = prev;
+        }
+    }
+
+    return max_flow;
+}
+
+int main() {
+    int N, M, u, v, cap;
+    f >> N >> M;
+
+    for (int i = 1; i <= M; ++i) {
+        f >> u >> v >> cap;
+        residual[u][v] += cap; // Adaugam capacitatea pe muchia directa
+        adj[u].push_back(v); // Adaugam nodul v in lista de adiacenta a lui u
+        adj[v].push_back(u); // Adaugam nodul u pentru muchia inversa (capacitate reziduala)
+    }
+
+    g << edmondsKarp(1, N, N);
+
+    return 0;
+}

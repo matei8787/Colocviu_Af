@@ -1,0 +1,76 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+
+std::ifstream f("graf.in");
+std::ofstream g("graf.out");
+
+const int NMAX = 1e5;
+std::vector<int> L[NMAX + 1];
+std::vector<std::tuple<int, int, int>> edges;
+
+int parent[NMAX + 1], rank[NMAX + 1];
+int N, M;
+
+int find(int x) {
+    if (parent[x] != x)
+        parent[x] = find(parent[x]);
+    return parent[x];
+}
+
+void unionSets(int x, int y) {
+    int rootX = find(x);
+    int rootY = find(y);
+
+    if (rootX != rootY) {
+        if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
+        }
+    }
+}
+
+int main() {
+    f >> N >> M;
+
+    for (int i = 1; i <= M; ++i) {
+        int x, y, cost;
+        f >> x >> y >> cost;
+        edges.emplace_back(cost, x, y);
+    }
+
+    for (int i = 1; i <= N; ++i) {
+        parent[i] = i;
+        rank[i] = 0;
+    }
+
+    std::sort(edges.begin(), edges.end());
+
+    // Construim MST
+    int mstCost = 0;
+    std::vector<std::pair<int, int>> mstEdges;
+
+    for (auto [cost, u, v] : edges) {
+        if (find(u) != find(v)) {
+            unionSets(u, v);
+            mstCost += cost;
+            mstEdges.emplace_back(u, v);
+        }
+
+        if (mstEdges.size() == N - 1) break;
+    }
+
+
+    g << "Costul MST: " << mstCost << "\n";
+    g << "Muchiile MST:\n";
+    for (auto [u, v] : mstEdges) {
+        g << u << " " << v << "\n";
+    }
+
+    return 0;
+}

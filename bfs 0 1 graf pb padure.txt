@@ -1,0 +1,62 @@
+#include <iostream>
+#include <fstream>
+#include <deque>
+#include <climits>
+
+std::ifstream f("padure.in");
+std::ofstream g("padure.out");
+
+int a[1005][1005];
+
+std::deque<std::pair<int,int>> deque;
+int dist[1005][10005];
+int N, M;
+
+void BFS(int startLinie, int startCol){
+
+    dist[startLinie][startCol] = 0;
+    deque.emplace_back(startLinie, startCol);
+    int dx[] = {0, -1, 0, 1};
+    int dy[] = {1, 0, -1, 0};
+
+    while(!deque.empty()){
+        int i = deque.front().first;
+        int j = deque.front().second;
+        deque.pop_front();
+        
+        for (int t = 0; t < 4; ++t){
+            int x = i + dx[t], y = j + dy[t];
+
+            if (x < 1 || x > N || y < 1 || y > M) continue;
+
+
+            int cost = (a[x][y] == a[i][j]) ? 0 : 1;
+
+            if (dist[x][y] > dist[i][j] + cost) {
+                dist[x][y] = dist[i][j] + cost;
+
+                if (cost)
+                    deque.emplace_back(x, y);
+                else deque.emplace_front(x, y);
+            }
+        }
+    }
+
+}
+
+int pl, pc, cl, cc;
+int main() {
+
+    f >> N >> M >> pl >> pc >> cl >> cc;
+    for (int i = 1; i <= N ; ++i)
+        for (int j = 1; j <= M; ++j) {
+            f >> a[i][j];
+            dist[i][j] = INT_MAX;
+        }
+
+    BFS(pl, pc);
+
+    g << dist[cl][cc];
+
+    return 0;
+}

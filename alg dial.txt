@@ -1,0 +1,77 @@
+#include <iostream>
+#include <vector>
+#include <list>
+#include <climits>
+using namespace std;
+
+const int NMAX = 1e5 + 1;
+vector<pair<int, int>> adj[NMAX]; // Lista de adiacență (vecin, pondere)
+vector<int> dist;
+
+void dial(int source, int N, int maxWeight) {
+    dist.assign(N + 1, INT_MAX);
+    dist[source] = 0;
+
+    // Creăm bucket-uri pentru distanțe
+    vector<list<int>> buckets(maxWeight * N + 1); // Număr maxim de bucket-uri
+    buckets[0].push_back(source);
+
+    int currentBucket = 0; // Bucket-ul curent
+
+    while (true) {
+        // Găsim următorul bucket nevid
+        while (currentBucket < buckets.size() && buckets[currentBucket].empty()) {
+            currentBucket++;
+        }
+        if (currentBucket == buckets.size()) break; // Nu mai sunt noduri de procesat
+
+        // Procesăm nodurile din bucket-ul curent
+        int node = buckets[currentBucket].front();
+        buckets[currentBucket].pop_front();
+
+        // Procesăm toți vecinii nodului curent
+        for (auto& edge : adj[node]) {
+            int neighbor = edge.first;
+            int weight = edge.second;
+
+            if (dist[node] + weight < dist[neighbor]) {
+                int oldBucket = dist[neighbor];
+                dist[neighbor] = dist[node] + weight;
+
+                // Mutăm vecinul în bucket-ul nou
+                if (oldBucket != INT_MAX) {
+                    buckets[oldBucket].remove(neighbor);
+                }
+                buckets[dist[neighbor]].push_back(neighbor);
+            }
+        }
+    }
+}
+
+int main() {
+    int N, M; // N - număr de noduri, M - număr de muchii
+    cin >> N >> M;
+
+    for (int i = 0; i < M; ++i) {
+        int u, v, w;
+        cin >> u >> v >> w; // muchie de la u la v cu pondere w
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w}); // Dacă graful este neorientat
+    }
+
+    int source;
+    cin >> source; // Nodul sursă
+
+    int maxWeight = 3; // Ponderi maxime (0, 1, 2, 3)
+    dial(source, N, maxWeight);
+
+    for (int i = 1; i <= N; ++i) {
+        if (dist[i] == INT_MAX) {
+            cout << "Distanta de la " << source << " la " << i << ": INF\n";
+        } else {
+            cout << "Distanta de la " << source << " la " << i << ": " << dist[i] << "\n";
+        }
+    }
+
+    return 0;
+}

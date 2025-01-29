@@ -1,0 +1,60 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <queue>
+#include <tuple>
+#include <climits>
+
+std::ifstream f("bellmanford.in");
+std::ofstream g("bellmanford.out");
+
+const int NMAX = 1e5;
+int N, M, source;
+std::vector<std::tuple<int, int, int>> edges;
+int dist[NMAX + 1];
+
+bool bellmanFord() {
+    for (int i = 1; i <= N; ++i) {
+        dist[i] = INT_MAX;
+    }
+    dist[source] = 0;
+
+    for (int i = 1; i < N; ++i) {
+        for (auto [u, v, cost] : edges) {
+            if (dist[u] != INT_MAX && dist[u] + cost < dist[v]) {
+                dist[v] = dist[u] + cost;
+            }
+        }
+    }
+
+    for (auto [u, v, cost] : edges) {
+        if (dist[u] != INT_MAX && dist[u] + cost < dist[v]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+int main() {
+
+    f >> N >> M;
+
+    for (int i = 0; i < M; ++i) {
+        int u, v, cost;
+        f >> u >> v >> cost;
+        edges.emplace_back(u, v, cost);
+    }
+
+    source = 1;
+
+    if (bellmanFord()) {
+        for (int i = 2; i <= N; ++i) {
+            g << dist[i] << " ";
+        }
+    } else {
+        g << "Ciclu negativ!\n";
+    }
+
+    return 0;
+}

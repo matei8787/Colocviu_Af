@@ -1,0 +1,66 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <queue>
+#include <stack>
+
+std::ifstream f("ctc.in");
+std::ofstream g("ctc.out");
+
+const int NMAX = 1e5;
+std::vector<int> L[NMAX + 1];
+std::vector<int> ids, lowlink;
+std::stack<int> st;
+int timer;
+std::vector<std::pair<int, int>> bridges;
+
+int viz[NMAX + 1];
+int N, M;
+
+void dfsMuchiiCritice(int at, int parent) {
+
+    viz[at] = 1;
+    ids[at] = lowlink[at] = timer++;
+
+    for (auto to: L[at]) {
+        if (to == parent) continue;
+
+        if (!viz[to]) {
+            dfsMuchiiCritice(to, at);
+            lowlink[at] = std::min(lowlink[at], lowlink[to]);
+
+            if(lowlink[to] > ids[at]) {
+                bridges.emplace_back(at, to);
+            }
+        }
+        else {
+            lowlink[at] = std::min(lowlink[at], ids[to]);
+        }
+    }
+
+}
+
+int main() {
+
+    f >> N >> M;
+    for(int i = 1; i <= M; ++i){
+        int x, y;
+        f >> x >> y;
+        L[x].push_back(y);
+        L[y].push_back(x);
+    }
+
+    ids.assign(N+1, -1);
+    lowlink.assign(N+1, -1);
+
+    for (int i = 1; i <= N; ++i){
+        if(!viz[i])
+            dfsMuchiiCritice(i, -1);
+    }
+
+    for (auto& bridge : bridges) {
+        std::cout << bridge.first << " - " << bridge.second << "\n";
+    }
+
+    return 0;
+}

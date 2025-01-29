@@ -1,0 +1,77 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <queue>
+#include <tuple>
+#include <climits>
+
+std::ifstream f("bellmanford.in");
+std::ofstream g("bellmanford.out");
+
+const int NMAX = 1e5;
+int N, M, source;
+std::vector<std::pair<int, int>> adj[NMAX + 1];
+int dist[NMAX + 1];
+bool inQueue[NMAX + 1];
+
+bool spfa() {
+    std::queue<int> q;
+    std::vector<int> count(N + 1, 0); // nr. relaxari
+
+    for (int i = 1; i <= N; ++i) {
+        dist[i] = INT_MAX;
+        inQueue[i] = false;
+    }
+    dist[source] = 0;
+    q.push(source);
+    inQueue[source] = true;
+
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        inQueue[u] = false;
+
+        for (auto [v, cost] : adj[u]) {
+            if (dist[u] != INT_MAX && dist[u] + cost < dist[v]) {
+                dist[v] = dist[u] + cost;
+
+                if (!inQueue[v]) {
+                    q.push(v);
+                    inQueue[v] = true;
+                    count[v]++;
+
+                    // daca relax un nod de mai mult de N ori, avem un ciclu negative
+                    if (count[v] > N) return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+int main() {
+    f >> N >> M;
+
+    for (int i = 0; i < M; ++i) {
+        int u, v, cost;
+        f >> u >> v >> cost;
+        adj[u].emplace_back(v, cost);
+    }
+
+    source = 1; // Nodul sursa
+
+    if (spfa()) {
+        for (int i = 2; i <= N; ++i) {
+            if (dist[i] == INT_MAX) {
+                g << "INF "; // inaccesibil
+            } else {
+                g << dist[i] << " ";
+            }
+        }
+    } else {
+        g << "Ciclu negativ!\n";
+    }
+
+    return 0;
+}
